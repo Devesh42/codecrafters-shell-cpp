@@ -13,6 +13,12 @@ int main() {
     std::cout << "$ ";
     std::string input_cmd = "";
     std::cin >> input_cmd;
+    if(input_cmd == "exit")
+    {
+      int exit_code = 0;
+      std::cin >> exit_code;
+      return exit_code;
+    }
     std::cout << input_cmd << ": command not found\n";
   }
 }
