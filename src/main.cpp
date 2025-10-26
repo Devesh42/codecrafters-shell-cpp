@@ -1,5 +1,20 @@
 #include <iostream>
 #include <string>
+#include <sstream>
+
+void echo()
+{
+  std::string line;
+  std::string arg;
+  std::getline(std::cin, line);
+  std::stringstream ss(line);
+  while(ss >> arg)
+  {
+    std::cout << arg << " ";
+  }
+  std::cout << "\n";
+  return;
+}
 
 int main() {
   // Flush after every std::cout / std:cerr
@@ -19,6 +34,13 @@ int main() {
       std::cin >> exit_code;
       return exit_code;
     }
-    std::cout << input_cmd << ": command not found\n";
+    else if(input_cmd == "echo")
+    {
+      echo();
+    }
+    else
+    {
+      std::cout << input_cmd << ": command not found\n";
+    }
   }
 }
