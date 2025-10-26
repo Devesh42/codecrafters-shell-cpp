@@ -10,9 +10,9 @@ int main() {
 
   while(true)
   {
-    std::cout << "\n$ ";
+    std::cout << "$ ";
     std::string input_cmd = "";
     std::cin >> input_cmd;
-    std::cout << input_cmd << ": command not found";
+    std::cout << input_cmd << ": command not found\n";
   }
 }
