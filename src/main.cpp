@@ -1,9 +1,50 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <vector>
 #include <unordered_set>
+#include <stdlib.h>
+#include <unistd.h>
 
 std::unordered_set<std::string> builtins = {"exit","echo","type"};
+
+std::string get_env_var(const std::string & key )
+{
+  char * val;
+  val = std::getenv(key.c_str());
+  std::string retval = "";
+  if(val != NULL)
+  {
+    retval = val;
+  }
+  return retval;
+}
+
+std::vector<std::string> split_string(std::string input, char delimiter)
+{
+  std::stringstream ss(input);
+  std::string token;
+  std::vector<std::string> tokens;
+  while(std::getline(ss,token,delimiter))
+  {
+    tokens.push_back(token);
+  }
+  return tokens;
+}
+
+std::string check_in_env(std::string command)
+{
+  std::vector<std::string> paths = split_string(get_env_var("PATH"), ':');
+  for(auto& path: paths)
+  {
+    std::string full_path = path + "/" + command;
+    if(access(full_path.c_str(), F_OK) == 0 && access(full_path.c_str(), X_OK) == 0 )
+    {
+      return full_path;
+    }
+  }
+  return "";
+}
 
 void echo()
 {
@@ -35,7 +76,11 @@ void type()
     std::cout << command << " is a shell builtin\n";
   }
   else{
-    std::cout << command << ": not found\n";
+    std::string checkEnv = check_in_env(command);
+    if( checkEnv != "")
+      std::cout << command << " is " << checkEnv << "\n";
+    else
+      std::cout << command << ": not found\n";
   }
   return;
 }
