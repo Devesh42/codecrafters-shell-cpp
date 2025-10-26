@@ -1,6 +1,9 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <unordered_set>
+
+std::unordered_set<std::string> builtins = {"exit","echo","type"};
 
 void echo()
 {
@@ -13,6 +16,27 @@ void echo()
     std::cout << arg << " ";
   }
   std::cout << "\n";
+  return;
+}
+
+int exit()
+{
+  int exit_code = 0;
+  std::cin >> exit_code;
+  return exit_code;
+}
+
+void type()
+{
+  std::string command;
+  std::cin >> command;
+  if(builtins.find(command) != builtins.end())
+  {
+    std::cout << command << " is a shell builtin\n";
+  }
+  else{
+    std::cout << command << ": not found\n";
+  }
   return;
 }
 
@@ -30,13 +54,15 @@ int main() {
     std::cin >> input_cmd;
     if(input_cmd == "exit")
     {
-      int exit_code = 0;
-      std::cin >> exit_code;
-      return exit_code;
+      return exit();
     }
     else if(input_cmd == "echo")
     {
       echo();
+    }
+    else if(input_cmd == "type")
+    {
+      type();
     }
     else
     {
