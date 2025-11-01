@@ -46,17 +46,11 @@ std::string check_in_env(std::string command)
   return "";
 }
 
-void echo()
+void echo(std::vector<std::string> args)
 {
-  std::string line;
-  std::string arg;
-  std::getline(std::cin, line);
-  std::stringstream ss(line);
-  while(ss >> arg)
-  {
+  for(auto arg: args)
     std::cout << arg << " ";
-  }
-  std::cout << "\n";
+  std::cout << std::endl;
   return;
 }
 
@@ -96,14 +90,24 @@ int main() {
   {
     std::cout << "$ ";
     std::string input_cmd = "";
-    std::cin >> input_cmd;
+    std::vector<std::string> args;
+
+    std::string line;
+    std::string arg;
+    std::getline(std::cin, line);
+    std::stringstream ss(line);
+    ss >> input_cmd;
+    while(ss >> arg)
+    {
+      args.push_back(arg);
+    }
     if(input_cmd == "exit")
     {
       return exit();
     }
     else if(input_cmd == "echo")
     {
-      echo();
+      echo(args);
     }
     else if(input_cmd == "type")
     {
@@ -111,7 +115,19 @@ int main() {
     }
     else
     {
-      std::cout << input_cmd << ": command not found\n";
+      std::string execPath = check_in_env(input_cmd);
+      if(execPath != "")
+      {
+        std::string full_cmd = input_cmd;
+        for(auto arg: args)
+        {
+          full_cmd = full_cmd + " " + arg;
+        }
+        // std::cout << full_cmd << std::endl;
+        std::system(full_cmd.c_str());
+      }
+      else
+        std::cout << input_cmd << ": command not found\n";
     }
   }
 }
