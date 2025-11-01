@@ -54,15 +54,15 @@ void echo(std::vector<std::string> args)
   return;
 }
 
-int exit()
+int exit(std::vector<std::string> args)
 {
-  int exit_code = 0;
-  std::cin >> exit_code;
+  int exit_code = std::stoi(args[0]);
   return exit_code;
 }
 
-void type(std::string command)
+void type(std::vector<std::string> args)
 {
+  std::string command = args[0];
   if(builtins.find(command) != builtins.end())
   {
     std::cout << command << " is a shell builtin\n";
@@ -101,7 +101,7 @@ int main() {
     }
     if(input_cmd == "exit")
     {
-      return exit();
+      return exit(args);
     }
     else if(input_cmd == "echo")
     {
@@ -109,7 +109,7 @@ int main() {
     }
     else if(input_cmd == "type")
     {
-      type(args[0]);
+      type(args);
     }
     else
     {
