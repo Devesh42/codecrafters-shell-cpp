@@ -61,10 +61,8 @@ int exit()
   return exit_code;
 }
 
-void type()
+void type(std::string command)
 {
-  std::string command;
-  std::cin >> command;
   if(builtins.find(command) != builtins.end())
   {
     std::cout << command << " is a shell builtin\n";
@@ -111,7 +109,7 @@ int main() {
     }
     else if(input_cmd == "type")
     {
-      type();
+      type(args[0]);
     }
     else
     {
