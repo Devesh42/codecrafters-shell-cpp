@@ -46,10 +46,17 @@ std::string check_in_env(std::string command)
   return "";
 }
 
-void echo(const std::vector<std::string>& args)
+void echo(std::vector<std::string>& args)
 {
-  for(auto arg: args)
+  for(std::string& arg: args)
+  {
+    if(arg[0] == '\'' || arg[0] == '\"')
+    {
+      arg.erase(0,1);
+      arg.erase(arg.size()-1);
+    }
     std::cout << arg << " ";
+  }
   std::cout << std::endl;
   return;
 }
@@ -109,9 +116,11 @@ void handle_input(std::string& command, std::vector<std::string>& args)
         current_arg.clear() ;
       }else if( c == '\'')
       {
+        current_arg += c;
         current_state = ParseState::QUOTE;
       }else if( c == '\"')
       {
+        current_arg += c;
         current_state = ParseState::DOUBLE_QUOTE;
       }else
         current_arg += c;
@@ -121,8 +130,8 @@ void handle_input(std::string& command, std::vector<std::string>& args)
       if(c == '\'' || c == '\"')
       {
         current_state = ParseState::NORMAL;
-      }else
-        current_arg += c;
+      }
+      current_arg += c;
 
     }
   }
