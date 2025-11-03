@@ -104,7 +104,8 @@ void handle_input(std::string& command, std::vector<std::string>& args)
     {
       if(c == ' ')
       {
-        args.push_back(current_arg);
+        if(!current_arg.empty())
+          args.push_back(current_arg);
         current_arg.clear() ;
       }else if( c == '\'')
       {
