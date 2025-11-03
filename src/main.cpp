@@ -109,50 +109,26 @@ void handle_input(std::string& command, std::vector<std::string>& args)
         current_arg.clear() ;
       }else if( c == '\'')
       {
-        current_arg += c;
         current_state = ParseState::QUOTE;
       }else if( c == '\"')
       {
-        current_arg += c;
         current_state = ParseState::DOUBLE_QUOTE;
       }else
         current_arg += c;
     } 
-    else if(current_state == ParseState::QUOTE)
+    else if(current_state == ParseState::QUOTE || current_state == ParseState::DOUBLE_QUOTE)
     {
-      if(c == '\'')
+      if(c == '\'' || c == '\"')
       {
-        current_arg += c;
-        args.push_back(current_arg);
-        current_arg.clear() ;
         current_state = ParseState::NORMAL;
       }else
         current_arg += c;
 
     }
-    else if(current_state == ParseState::DOUBLE_QUOTE)
-    {
-      if(c == '\"')
-      {
-        current_arg += c;
-        args.push_back(current_arg);
-        current_arg.clear() ;
-        current_state = ParseState::NORMAL;
-      }else
-        current_arg += c;
-    }
   }
   if(current_arg != "")
     args.push_back(current_arg);
   
-  for(std::string& arg: args)
-  {
-    if(arg[0] == '\'' || arg[0] == '"')
-    {
-      arg.erase(0,1);
-      arg.erase(arg.size()-1);
-    }
-  }
 }
 
 int main() {
