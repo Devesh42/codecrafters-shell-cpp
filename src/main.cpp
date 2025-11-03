@@ -56,8 +56,12 @@ void echo(std::vector<std::string> args)
 
 int exit(std::vector<std::string> args)
 {
-  int exit_code = std::stoi(args[0]);
-  return exit_code;
+  if(!args.empty())
+  {
+    int exit_code = std::stoi(args[0]);
+    return exit_code;
+  }
+  return 0;
 }
 
 void type(std::vector<std::string> args)
@@ -77,28 +81,91 @@ void type(std::vector<std::string> args)
   return;
 }
 
+enum class ParseState {
+  NORMAL,
+  QUOTE,
+  DOUBLE_QUOTE
+};
+
+void handle_input(std::string& command, std::vector<std::string>& args)
+{
+  args.clear();
+  std::string line;
+  std::string arg;
+  std::cin >> command;
+  std::getline(std::cin, line);
+
+  std::string current_arg = "";
+  ParseState current_state = ParseState::NORMAL;
+  for(char c: line)
+  {
+    if(current_state == ParseState::NORMAL)
+    {
+      if(c == ' ')
+      {
+        args.push_back(current_arg);
+        current_arg.clear() ;
+      }else if( c == '\'')
+      {
+        current_arg += c;
+        current_state = ParseState::QUOTE;
+      }else if( c == '\"')
+      {
+        current_arg += c;
+        current_state = ParseState::DOUBLE_QUOTE;
+      }else
+        current_arg += c;
+    } 
+    else if(current_state == ParseState::QUOTE)
+    {
+      if(c == '\'')
+      {
+        current_arg += c;
+        args.push_back(current_arg);
+        current_arg.clear() ;
+        current_state = ParseState::NORMAL;
+      }else
+        current_arg += c;
+
+    }
+    else if(current_state == ParseState::DOUBLE_QUOTE)
+    {
+      if(c == '\"')
+      {
+        current_arg += c;
+        args.push_back(current_arg);
+        current_arg.clear() ;
+        current_state = ParseState::NORMAL;
+      }else
+        current_arg += c;
+    }
+  }
+  if(current_arg != "")
+    args.push_back(current_arg);
+  
+  for(std::string& arg: args)
+  {
+    if(arg[0] == '\'' || arg[0] == '"')
+    {
+      arg.erase(0,1);
+      arg.erase(arg.size()-1);
+    }
+  }
+}
+
 int main() {
   // Flush after every std::cout / std:cerr
   std::cout << std::unitbuf;
   std::cerr << std::unitbuf;
 
-  // TODO: Uncomment the code below to pass the first stage
 
   while(true)
   {
     std::cout << "$ ";
-    std::string input_cmd = "";
+    std::string input_cmd;
     std::vector<std::string> args;
 
-    std::string line;
-    std::string arg;
-    std::getline(std::cin, line);
-    std::stringstream ss(line);
-    ss >> input_cmd;
-    while(ss >> arg)
-    {
-      args.push_back(arg);
-    }
+    handle_input(input_cmd, args);
     if(input_cmd == "exit")
     {
       return exit(args);
