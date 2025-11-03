@@ -46,7 +46,7 @@ std::string check_in_env(std::string command)
   return "";
 }
 
-void echo(std::vector<std::string> args)
+void echo(const std::vector<std::string>& args)
 {
   for(auto arg: args)
     std::cout << arg << " ";
@@ -94,6 +94,7 @@ void handle_input(std::string& command, std::vector<std::string>& args)
   std::string arg;
   std::cin >> command;
   std::getline(std::cin, line);
+  line.erase(0,1);
 
   std::string current_arg = "";
   ParseState current_state = ParseState::NORMAL;
