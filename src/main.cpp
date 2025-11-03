@@ -2,6 +2,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <algorithm>
 #include <unordered_set>
 #include <stdlib.h>
 #include <unistd.h>
@@ -32,6 +33,15 @@ std::vector<std::string> split_string(std::string input, char delimiter)
   return tokens;
 }
 
+std::string remove_quotes(std::string& s)
+{
+  std::string clean_string = s;
+  clean_string.erase(std::remove_if(clean_string.begin(),clean_string.end(), [](char c){
+    return c == '\'' || c == '\"';
+  }), clean_string.end());
+  return clean_string;
+}
+
 std::string check_in_env(std::string command)
 {
   std::vector<std::string> paths = split_string(get_env_var("PATH"), ':');
@@ -50,12 +60,7 @@ void echo(std::vector<std::string>& args)
 {
   for(std::string& arg: args)
   {
-    if(arg[0] == '\'' || arg[0] == '\"')
-    {
-      arg.erase(0,1);
-      arg.erase(arg.size()-1);
-    }
-    std::cout << arg << " ";
+    std::cout << remove_quotes(arg) << " ";
   }
   std::cout << std::endl;
   return;
