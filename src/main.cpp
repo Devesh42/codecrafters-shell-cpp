@@ -36,9 +36,11 @@ std::vector<std::string> split_string(std::string input, char delimiter)
 std::string remove_quotes(std::string& s)
 {
   std::string clean_string = s;
-  clean_string.erase(std::remove_if(clean_string.begin(),clean_string.end(), [](char c){
-    return c == '\'' || c == '\"';
-  }), clean_string.end());
+  if(!s.empty() && (s[0] == '\'' || s[0] == '\"'))
+  {
+    clean_string.erase(0,1);
+    clean_string.erase(clean_string.size()-1);
+  }
   return clean_string;
 }
 
@@ -130,14 +132,20 @@ void handle_input(std::string& command, std::vector<std::string>& args)
       }else
         current_arg += c;
     } 
-    else if(current_state == ParseState::QUOTE || current_state == ParseState::DOUBLE_QUOTE)
+    else if(current_state == ParseState::QUOTE )
     {
-      if(c == '\'' || c == '\"')
+      if(c == '\'')
       {
         current_state = ParseState::NORMAL;
       }
       current_arg += c;
-
+    }else if(current_state == ParseState::DOUBLE_QUOTE)
+    {
+      if(c == '\"')
+      {
+        current_state = ParseState::NORMAL;
+      }
+      current_arg += c;
     }
   }
   if(current_arg != "")
