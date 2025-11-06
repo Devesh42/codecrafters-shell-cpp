@@ -36,10 +36,13 @@ std::vector<std::string> split_string(std::string input, char delimiter)
 std::string remove_quotes(std::string& s)
 {
   std::string clean_string = s;
-  if(!s.empty() && (s[0] == '\'' || s[0] == '\"'))
+  if(s[0] == '\'')
   {
-    clean_string.erase(0,1);
-    clean_string.erase(clean_string.size()-1);
+    clean_string.erase(std::remove(clean_string.begin(),clean_string.end(), '\''),clean_string.end());
+  }
+  else if(s[0] == '\"')
+  {
+    clean_string.erase(std::remove(clean_string.begin(),clean_string.end(), '\"'),clean_string.end());
   }
   return clean_string;
 }
