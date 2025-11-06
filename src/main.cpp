@@ -121,20 +121,26 @@ void handle_input(std::string& command, std::vector<std::string>& args)
 
   std::string current_arg = "";
   ParseState current_state = ParseState::NORMAL;
+  bool escape = false;
   for(char c: line)
   {
     if(current_state == ParseState::NORMAL)
     {
-      if(c == ' ')
+      if(c == '\\')
+      {
+        escape = true;
+        continue;
+      }
+      if(c == ' ' && !escape)
       {
         if(!current_arg.empty())
           args.push_back(current_arg);
         current_arg.clear() ;
-      }else if( c == '\'')
+      }else if( c == '\'' && !escape)
       {
         current_arg += c;
         current_state = ParseState::QUOTE;
-      }else if( c == '\"')
+      }else if( c == '\"' && !escape)
       {
         current_arg += c;
         current_state = ParseState::DOUBLE_QUOTE;
