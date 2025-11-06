@@ -43,6 +43,12 @@ std::string remove_quotes(std::string& s)
   else if(s[0] == '\"')
   {
     clean_string.erase(std::remove(clean_string.begin(),clean_string.end(), '\"'),clean_string.end());
+  }else if(clean_string.find("\"\"") != std::string::npos)
+  {
+    clean_string.erase(std::remove(clean_string.begin(),clean_string.end(), '\"'),clean_string.end());
+  }else if(clean_string.find("\'\'") != std::string::npos)
+  {
+    clean_string.erase(std::remove(clean_string.begin(),clean_string.end(), '\''),clean_string.end());
   }
   return clean_string;
 }
