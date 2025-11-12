@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstring>
 #include <string>
 #include <sstream>
 #include <vector>
@@ -6,6 +7,9 @@
 #include <unordered_set>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/wait.h>
+
+#define BUF_SIZE 1000
 
 std::unordered_set<std::string> builtins = {"exit","echo","type"};
 
@@ -67,29 +71,18 @@ std::string check_in_env(std::string command)
   return "";
 }
 
-void echo(std::vector<std::string>& args)
+int exit(std::vector<std::string>& args)
 {
-  for(std::string& arg: args)
+  if(args.size() >= 2)
   {
-    std::cout << remove_quotes(arg) << " ";
-  }
-  std::cout << std::endl;
-  return;
-}
-
-int exit(std::vector<std::string> args)
-{
-  if(!args.empty())
-  {
-    int exit_code = std::stoi(args[0]);
+    int exit_code = std::stoi(args[1]);
     return exit_code;
   }
   return 0;
 }
 
-void type(std::vector<std::string> args)
+void type(std::string command)
 {
-  std::string command = args[0];
   if(builtins.find(command) != builtins.end())
   {
     std::cout << command << " is a shell builtin\n";
@@ -110,20 +103,19 @@ enum class ParseState {
   DOUBLE_QUOTE
 };
 
-void handle_input(std::string& command, std::vector<std::string>& args)
+std::vector<std::string> handle_input()
 {
-  args.clear();
-  std::string line;
-  std::string arg;
-  std::cin >> command;
-  std::getline(std::cin, line);
-  line.erase(0,1);
-
-  std::string current_arg = "";
+  char line[BUF_SIZE];
+  fgets(line, BUF_SIZE,stdin);
+  int command_len = std::strlen(line)-1;
   ParseState current_state = ParseState::NORMAL;
+
+  std::vector<std::string> args;
+  std::string current_arg = "";
   bool escape = false;
-  for(char c: line)
+  for(int i=0; i < command_len; i++)
   {
+    char c = line[i];
     if(current_state == ParseState::NORMAL)
     {
       if(c == '\\')
@@ -131,7 +123,7 @@ void handle_input(std::string& command, std::vector<std::string>& args)
         escape = true;
         continue;
       }
-      if(c == ' ' && !escape)
+      else if(c == ' ' && !escape)
       {
         if(!current_arg.empty())
           args.push_back(current_arg);
@@ -145,7 +137,10 @@ void handle_input(std::string& command, std::vector<std::string>& args)
         current_arg += c;
         current_state = ParseState::DOUBLE_QUOTE;
       }else
+      {
         current_arg += c;
+        escape = false;
+      }
     } 
     else if(current_state == ParseState::QUOTE )
     {
@@ -165,7 +160,8 @@ void handle_input(std::string& command, std::vector<std::string>& args)
   }
   if(current_arg != "")
     args.push_back(current_arg);
-  
+
+  return args;
 }
 
 int main() {
@@ -177,34 +173,44 @@ int main() {
   while(true)
   {
     std::cout << "$ ";
-    std::string input_cmd;
-    std::vector<std::string> args;
+    std::vector<std::string> args = handle_input();
+    std::vector<char *> arg_v;
+    for(const std::string&arg: args)
+    {
+      arg_v.push_back(const_cast<char *>(arg.c_str()));
+    }
+    arg_v.push_back(NULL);
 
-    handle_input(input_cmd, args);
+    std::string input_cmd;
+    if(!args.empty())
+      input_cmd = args[0];
     if(input_cmd == "exit")
     {
       return exit(args);
     }
-    else if(input_cmd == "echo")
-    {
-      echo(args);
-    }
     else if(input_cmd == "type")
     {
-      type(args);
+      type(arg_v[1]);
     }
     else
     {
       std::string execPath = check_in_env(input_cmd);
       if(execPath != "")
       {
-        std::string full_cmd = input_cmd;
-        for(auto arg: args)
+        pid_t pid = fork();
+        if(pid == -1)
         {
-          full_cmd = full_cmd + " " + arg;
+          exit(-1);
+        }else if(pid > 0)
+        {
+          int status;
+          waitpid(pid, &status, 0);
+        }else
+        {
+          execvp(arg_v[0],arg_v.data());   
+          _exit(EXIT_FAILURE);
         }
-        // std::cout << full_cmd << std::endl;
-        std::system(full_cmd.c_str());
+
       }
       else
         std::cout << input_cmd << ": command not found\n";
