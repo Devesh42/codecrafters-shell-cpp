@@ -100,7 +100,8 @@ void type(std::string command)
 enum class ParseState {
   NORMAL,
   QUOTE,
-  DOUBLE_QUOTE
+  DOUBLE_QUOTE,
+  ESCAPE
 };
 
 std::vector<std::string> handle_input()
@@ -112,34 +113,37 @@ std::vector<std::string> handle_input()
 
   std::vector<std::string> args;
   std::string current_arg = "";
-  bool escape = false;
   for(int i=0; i < command_len; i++)
   {
     char c = line[i];
-    if(current_state == ParseState::NORMAL)
+    if(current_state == ParseState::ESCAPE)
+    {
+      current_arg += c;
+      current_state = ParseState::NORMAL;
+    }
+    else if(current_state == ParseState::NORMAL)
     {
       if(c == '\\')
       {
-        escape = true;
+        current_state = ParseState::ESCAPE;
         continue;
       }
-      else if(c == ' ' && !escape)
+      else if(c == ' ')
       {
         if(!current_arg.empty())
           args.push_back(current_arg);
         current_arg.clear() ;
-      }else if( c == '\'' && !escape)
+      }else if( c == '\'')
       {
-        current_arg += c;
+        // current_arg += c;
         current_state = ParseState::QUOTE;
-      }else if( c == '\"' && !escape)
+      }else if( c == '\"')
       {
-        current_arg += c;
+        // current_arg += c;
         current_state = ParseState::DOUBLE_QUOTE;
       }else
       {
         current_arg += c;
-        escape = false;
       }
     } 
     else if(current_state == ParseState::QUOTE )
@@ -147,14 +151,14 @@ std::vector<std::string> handle_input()
       if(c == '\'')
       {
         current_state = ParseState::NORMAL;
-      }
+      }else
       current_arg += c;
     }else if(current_state == ParseState::DOUBLE_QUOTE)
     {
       if(c == '\"')
       {
         current_state = ParseState::NORMAL;
-      }
+      }else
       current_arg += c;
     }
   }
