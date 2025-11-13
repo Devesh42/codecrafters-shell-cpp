@@ -119,6 +119,8 @@ std::vector<std::string> handle_input()
     char c = line[i];
     if(current_state == ParseState::ESCAPE)
     {
+      if(previous_state == ParseState::DOUBLE_QUOTE && (c == '\"' || c == '\\'))
+        current_arg.pop_back();
       current_arg += c;
       current_state = previous_state;
     }
@@ -162,6 +164,7 @@ std::vector<std::string> handle_input()
       {
         previous_state = ParseState::DOUBLE_QUOTE;
         current_state = ParseState::ESCAPE;
+        current_arg += c;
       }
       else
         current_arg += c;
