@@ -42,7 +42,7 @@ void redirect_output(int old_fd,std::string fileName,bool isAppend)
 {
   int f_d;
   if(isAppend)
-    f_d = open(fileName.c_str(), O_WRONLY|O_APPEND);
+    f_d = open(fileName.c_str(), O_CREAT|O_WRONLY|O_APPEND, 0642);
   else
     f_d = open(fileName.c_str(), O_CREAT|O_WRONLY, 0642);
   dup2(f_d,old_fd);
@@ -61,7 +61,7 @@ int main() {
     std::string fileName = "";
     std::string redirectType = "";
     if(std::find_if(args.begin(),args.end(),[](std::string s){
-      return s == ">" || s == "1>" || s == "2>" || s == "1>>" || s == "2>>";
+      return s == ">" || s == "1>" || s == "2>" || s == ">>" || s == "2>>" || s == "1>>";
     }) != args.end()){
       if(args.size() >= 2)
       {
