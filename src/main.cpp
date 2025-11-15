@@ -1,75 +1,16 @@
 #include <iostream>
-#include <cstring>
 #include <string>
-#include <sstream>
 #include <vector>
 #include <algorithm>
 #include <unordered_set>
 #include <stdlib.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <sys/wait.h>
-
-#define BUF_SIZE 1000
+#include "parser.h"
+#include "helper.h"
 
 std::unordered_set<std::string> builtins = {"exit","echo","type"};
-
-std::string get_env_var(const std::string & key )
-{
-  char * val;
-  val = std::getenv(key.c_str());
-  std::string retval = "";
-  if(val != NULL)
-  {
-    retval = val;
-  }
-  return retval;
-}
-
-std::vector<std::string> split_string(std::string input, char delimiter)
-{
-  std::stringstream ss(input);
-  std::string token;
-  std::vector<std::string> tokens;
-  while(std::getline(ss,token,delimiter))
-  {
-    tokens.push_back(token);
-  }
-  return tokens;
-}
-
-std::string remove_quotes(std::string& s)
-{
-  std::string clean_string = s;
-  if(s[0] == '\'')
-  {
-    clean_string.erase(std::remove(clean_string.begin(),clean_string.end(), '\''),clean_string.end());
-  }
-  else if(s[0] == '\"')
-  {
-    clean_string.erase(std::remove(clean_string.begin(),clean_string.end(), '\"'),clean_string.end());
-  }else if(clean_string.find("\"\"") != std::string::npos)
-  {
-    clean_string.erase(std::remove(clean_string.begin(),clean_string.end(), '\"'),clean_string.end());
-  }else if(clean_string.find("\'\'") != std::string::npos)
-  {
-    clean_string.erase(std::remove(clean_string.begin(),clean_string.end(), '\''),clean_string.end());
-  }
-  return clean_string;
-}
-
-std::string check_in_env(std::string command)
-{
-  std::vector<std::string> paths = split_string(get_env_var("PATH"), ':');
-  for(auto& path: paths)
-  {
-    std::string full_path = path + "/" + command;
-    if(access(full_path.c_str(), F_OK) == 0 && access(full_path.c_str(), X_OK) == 0 )
-    {
-      return full_path;
-    }
-  }
-  return "";
-}
 
 int exit(std::vector<std::string>& args)
 {
@@ -97,83 +38,10 @@ void type(std::string command)
   return;
 }
 
-enum class ParseState {
-  NORMAL,
-  QUOTE,
-  DOUBLE_QUOTE,
-  ESCAPE
-};
-
-std::vector<std::string> handle_input()
+void redirect_output(std::string fileName)
 {
-  char line[BUF_SIZE];
-  fgets(line, BUF_SIZE,stdin);
-  int command_len = std::strlen(line)-1;
-  ParseState current_state = ParseState::NORMAL;
-  ParseState previous_state = ParseState::NORMAL;
-
-  std::vector<std::string> args;
-  std::string current_arg = "";
-  for(int i=0; i < command_len; i++)
-  {
-    char c = line[i];
-    if(current_state == ParseState::ESCAPE)
-    {
-      if(previous_state == ParseState::DOUBLE_QUOTE && (c == '\"' || c == '\\'))
-        current_arg.pop_back();
-      current_arg += c;
-      current_state = previous_state;
-    }
-    else if(current_state == ParseState::NORMAL)
-    {
-      if(c == '\\')
-      {
-        previous_state = ParseState::NORMAL;
-        current_state = ParseState::ESCAPE;
-        continue;
-      }
-      else if(c == ' ')
-      {
-        if(!current_arg.empty())
-          args.push_back(current_arg);
-        current_arg.clear() ;
-      }else if( c == '\'')
-      {
-        current_state = ParseState::QUOTE;
-      }else if( c == '\"')
-      {
-        current_state = ParseState::DOUBLE_QUOTE;
-      }else
-      {
-        current_arg += c;
-      }
-    } 
-    else if(current_state == ParseState::QUOTE )
-    {
-      if(c == '\'')
-      {
-        current_state = ParseState::NORMAL;
-      }else
-      current_arg += c;
-    }else if(current_state == ParseState::DOUBLE_QUOTE)
-    {
-      if(c == '\"')
-      {
-        current_state = ParseState::NORMAL;
-      }else if(c == '\\')
-      {
-        previous_state = ParseState::DOUBLE_QUOTE;
-        current_state = ParseState::ESCAPE;
-        current_arg += c;
-      }
-      else
-        current_arg += c;
-    }
-  }
-  if(current_arg != "")
-    args.push_back(current_arg);
-
-  return args;
+  int f_d = open(fileName.c_str(), O_CREAT|O_WRONLY, S_IRWXU);
+  dup2(f_d,1);
 }
 
 int main() {
@@ -186,6 +54,19 @@ int main() {
   {
     std::cout << "$ ";
     std::vector<std::string> args = handle_input();
+    std::string fileName = "";
+    std::string redirectType = "";
+    if(std::find_if(args.begin(),args.end(),[](std::string s){
+      return s == ">" || s == "1>";
+    }) != args.end()){
+      if(args.size() >= 2)
+      {
+        fileName = args.back();
+        args.pop_back();
+        redirectType = args.back();
+        args.pop_back();
+      }
+    }
     std::vector<char *> arg_v;
     for(const std::string&arg: args)
     {
@@ -219,6 +100,10 @@ int main() {
           waitpid(pid, &status, 0);
         }else
         {
+          if(!redirectType.empty())
+          {
+            redirect_output(fileName);
+          }
           execvp(arg_v[0],arg_v.data());   
           _exit(EXIT_FAILURE);
         }
