@@ -38,9 +38,13 @@ void type(std::string command)
   return;
 }
 
-void redirect_output(int old_fd,std::string fileName)
+void redirect_output(int old_fd,std::string fileName,bool isAppend)
 {
-  int f_d = open(fileName.c_str(), O_CREAT|O_WRONLY, S_IRWXU);
+  int f_d;
+  if(isAppend)
+    f_d = open(fileName.c_str(), O_WRONLY|O_APPEND);
+  else
+    f_d = open(fileName.c_str(), O_CREAT|O_WRONLY, 0642);
   dup2(f_d,old_fd);
 }
 
@@ -57,7 +61,7 @@ int main() {
     std::string fileName = "";
     std::string redirectType = "";
     if(std::find_if(args.begin(),args.end(),[](std::string s){
-      return s == ">" || s == "1>" || s == "2>";
+      return s == ">" || s == "1>" || s == "2>" || s == "1>>" || s == "2>>";
     }) != args.end()){
       if(args.size() >= 2)
       {
@@ -103,9 +107,12 @@ int main() {
           if(!redirectType.empty())
           {
             int old_fd = 1;
+            bool isAppend = false;
             if(redirectType.find('2') != std::string::npos)
               old_fd = 2;
-            redirect_output(old_fd,fileName);
+            if(redirectType.find(">>") != std::string::npos)
+              isAppend = true;
+            redirect_output(old_fd,fileName, isAppend);
           }
           execvp(arg_v[0],arg_v.data());   
           _exit(EXIT_FAILURE);
