@@ -38,10 +38,10 @@ void type(std::string command)
   return;
 }
 
-void redirect_output(std::string fileName)
+void redirect_output(int old_fd,std::string fileName)
 {
   int f_d = open(fileName.c_str(), O_CREAT|O_WRONLY, S_IRWXU);
-  dup2(f_d,1);
+  dup2(f_d,old_fd);
 }
 
 int main() {
@@ -57,7 +57,7 @@ int main() {
     std::string fileName = "";
     std::string redirectType = "";
     if(std::find_if(args.begin(),args.end(),[](std::string s){
-      return s == ">" || s == "1>";
+      return s == ">" || s == "1>" || s == "2>";
     }) != args.end()){
       if(args.size() >= 2)
       {
@@ -102,7 +102,10 @@ int main() {
         {
           if(!redirectType.empty())
           {
-            redirect_output(fileName);
+            int old_fd = 1;
+            if(redirectType.find('2') != std::string::npos)
+              old_fd = 2;
+            redirect_output(old_fd,fileName);
           }
           execvp(arg_v[0],arg_v.data());   
           _exit(EXIT_FAILURE);
