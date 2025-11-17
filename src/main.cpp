@@ -9,7 +9,9 @@
 #include <sys/wait.h>
 #include "parser.h"
 #include "helper.h"
+#include <termios.h>
 
+static struct termios old_termios, new_termios;
 std::unordered_set<std::string> builtins = {"exit","echo","type"};
 
 int exit(std::vector<std::string>& args)
@@ -48,10 +50,28 @@ void redirect_output(int old_fd,std::string fileName,bool isAppend)
   dup2(f_d,old_fd);
 }
 
+void reset_terminal()
+{
+  tcsetattr(STDIN_FILENO, TCSAFLUSH, &old_termios);
+}
+
+void configure_terminal()
+{
+  tcgetattr(STDIN_FILENO, &old_termios);
+  new_termios.c_lflag &= ~(ICANON);
+  new_termios.c_cc[VMIN] = 1;
+  new_termios.c_cc[VTIME] = 0;
+  std::cout << "Setting terminal to raw mode\n";
+  tcsetattr(STDIN_FILENO, TCSAFLUSH ,&new_termios);
+  atexit(reset_terminal);
+}
+
+
 int main() {
   // Flush after every std::cout / std:cerr
   std::cout << std::unitbuf;
   std::cerr << std::unitbuf;
+  configure_terminal();
 
 
   while(true)

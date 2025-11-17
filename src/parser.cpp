@@ -1,8 +1,30 @@
 #include "parser.h"
+#include <unistd.h>
+#include <iostream>
 std::vector<std::string> handle_input()
 {
   char line[BUF_SIZE];
-  fgets(line, BUF_SIZE,stdin);
+  // fgets(line, BUF_SIZE,stdin);
+
+
+  char buffer[BUF_SIZE];
+  int index = 0;
+  char c;
+
+  while(1)
+  {
+    if(read(0,&c, 1) == -1)
+    {
+      perror("read error");
+      break;
+    }
+    if(c == 'q')
+      break;
+  }
+
+  return {};
+
+
   int command_len = std::strlen(line)-1;
   ParseState current_state = ParseState::NORMAL;
   ParseState previous_state = ParseState::NORMAL;
