@@ -1,14 +1,12 @@
 #include "parser.h"
 #include <unistd.h>
 #include <iostream>
-std::vector<std::string> handle_input()
+
+std::vector<std::string> handle_input(Trie& autoCompleter)
 {
-  char line[BUF_SIZE];
-  // fgets(line, BUF_SIZE,stdin);
-
-
-  char buffer[BUF_SIZE];
+  std::string line;
   int index = 0;
+  int command_len = 0;
   char c;
 
   while(1)
@@ -16,16 +14,29 @@ std::vector<std::string> handle_input()
     if(read(0,&c, 1) == -1)
     {
       perror("read error");
+      exit(EXIT_FAILURE);
+    }
+    if(c == 3) //Handling Ctrl + C
+    {
+      exit(EXIT_SUCCESS);
+    }else if( c == '\t')
+    {
+      line = autoCompleter.autoComplete(line);
+      std::cout << " ";
+      line += " ";
+    }else if(c == '\r')
+    {
+      std::cout << '\n';
       break;
     }
-    if(c == 'q')
-      break;
+    else
+    {
+      std::cout << c;
+      line += c;
+    }
   }
 
-  return {};
-
-
-  int command_len = std::strlen(line)-1;
+  command_len = line.size();
   ParseState current_state = ParseState::NORMAL;
   ParseState previous_state = ParseState::NORMAL;
 

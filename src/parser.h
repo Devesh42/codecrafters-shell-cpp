@@ -4,6 +4,7 @@
 #include <cstring>
 #include <vector>
 #include <string>
+#include "trie.h"
 
 #define BUF_SIZE 1000
 
@@ -14,6 +15,6 @@ enum class ParseState {
   ESCAPE
 };
 
-std::vector<std::string> handle_input();
+std::vector<std::string> handle_input(Trie&);
 
 #endif

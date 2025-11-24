@@ -8,6 +8,7 @@
 #include <fcntl.h>
 #include <sys/wait.h>
 #include "parser.h"
+#include "trie.h"
 #include "helper.h"
 #include <termios.h>
 
@@ -58,12 +59,14 @@ void reset_terminal()
 void configure_terminal()
 {
   tcgetattr(STDIN_FILENO, &old_termios);
-  new_termios.c_lflag &= ~(ICANON);
+  atexit(reset_terminal);
+  new_termios = old_termios;
+  new_termios.c_iflag &= ~(BRKINT| ICRNL | INPCK | ISTRIP | IXON);
+  // new_termios.c_oflag &= ~(OPOST);
+  new_termios.c_lflag &= ~(ICANON | ECHO |  IEXTEN | ISIG);
   new_termios.c_cc[VMIN] = 1;
   new_termios.c_cc[VTIME] = 0;
-  std::cout << "Setting terminal to raw mode\n";
   tcsetattr(STDIN_FILENO, TCSAFLUSH ,&new_termios);
-  atexit(reset_terminal);
 }
 
 
@@ -72,12 +75,15 @@ int main() {
   std::cout << std::unitbuf;
   std::cerr << std::unitbuf;
   configure_terminal();
+  Trie autoCompleter = Trie();
+  for(std::string command: builtins)
+    autoCompleter.insert(command);
 
 
   while(true)
   {
     std::cout << "$ ";
-    std::vector<std::string> args = handle_input();
+    std::vector<std::string> args = handle_input(autoCompleter);
     std::string fileName = "";
     std::string redirectType = "";
     if(std::find_if(args.begin(),args.end(),[](std::string s){
