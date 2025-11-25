@@ -24,7 +24,7 @@ std::vector<std::string> handle_input(Trie& autoCompleter)
       line = autoCompleter.autoComplete(line);
       std::cout << " ";
       line += " ";
-    }else if(c == '\r')
+    }else if(c == '\r' || c == 4)
     {
       std::cout << '\n';
       break;

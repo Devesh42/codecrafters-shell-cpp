@@ -62,7 +62,6 @@ void configure_terminal()
   atexit(reset_terminal);
   new_termios = old_termios;
   new_termios.c_iflag &= ~(BRKINT| ICRNL | INPCK | ISTRIP | IXON);
-  // new_termios.c_oflag &= ~(OPOST);
   new_termios.c_lflag &= ~(ICANON | ECHO |  IEXTEN | ISIG);
   new_termios.c_cc[VMIN] = 1;
   new_termios.c_cc[VTIME] = 0;
