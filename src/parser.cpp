@@ -21,9 +21,16 @@ std::vector<std::string> handle_input(Trie& autoCompleter)
       exit(EXIT_SUCCESS);
     }else if( c == '\t')
     {
-      line = autoCompleter.autoComplete(line);
-      std::cout << " ";
-      line += " ";
+      std::string autoCompleteLine = autoCompleter.autoComplete(line); 
+      if(line == autoCompleteLine)
+      {
+        std::cout << '\a' ;
+      }else{
+        line = autoCompleteLine;
+        std::cout << " ";
+        line += " ";
+      }
+
     }else if(c == '\r' || c == 10)
     {
       std::cout << '\n';
