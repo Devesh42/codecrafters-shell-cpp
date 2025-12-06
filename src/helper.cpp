@@ -2,6 +2,11 @@
 #include <algorithm>
 #include "helper.h"
 #include <unistd.h>
+#include <filesystem>
+#include <iostream>
+
+namespace fs = std::filesystem;
+
 std::string get_env_var(const std::string & key )
 {
   char * val;
@@ -58,4 +63,19 @@ std::string check_in_env(std::string command)
     }
   }
   return "";
+}
+
+std::vector<std::string> add_custom_execs()
+{
+  std::vector<std::string> paths = split_string(get_env_var("PATH"), ':');
+  std::vector<std::string> executables;
+  for(const auto& path: paths)
+  {
+    for(const auto& entry: fs::recursive_directory_iterator(path))
+    {
+      fs::path entryPath = entry.path();
+      executables.push_back(entryPath.filename());
+    }
+  }
+  return executables;
 }

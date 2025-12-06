@@ -77,8 +77,11 @@ int main() {
   Trie autoCompleter = Trie();
   for(std::string command: builtins)
     autoCompleter.insert(command);
-
-
+  std::vector<std::string> custom_execs = add_custom_execs();
+  for(auto& exec: custom_execs)
+  {
+    autoCompleter.insert(exec);
+  }
   while(true)
   {
     std::cout << "$ ";

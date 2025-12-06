@@ -1,6 +1,7 @@
 #include "parser.h"
 #include <unistd.h>
 #include <iostream>
+#include "helper.h"
 
 std::vector<std::string> handle_input(Trie& autoCompleter)
 {
@@ -8,7 +9,6 @@ std::vector<std::string> handle_input(Trie& autoCompleter)
   int index = 0;
   int command_len = 0;
   char c;
-
   while(1)
   {
     if(read(0,&c, 1) == -1)

@@ -10,7 +10,7 @@ void Trie::insert(std::string word)
     TrieNode* curr = root;
     for(char& c : word)
     {
-        int i = c - 'a';
+        int i = c - 32;
         if(!(curr->children[i]))
             curr->children[i] = new TrieNode();
         curr = curr->children[i];
@@ -21,7 +21,7 @@ bool Trie::search(std::string word){
     TrieNode* curr = root;
     for(char& c : word)
     {
-        int i = c - 'a';
+        int i = c - 32;
         if(!(curr->children[i]))
             return false;
         curr = curr->children[i];
@@ -33,7 +33,7 @@ std::string Trie::autoComplete(std::string prefix){
     std::string completeString = prefix;
     for(char& c : prefix)
     {
-        int i = c - 'a';
+        int i = c - 32;
         if(!(curr->children[i]))
             return completeString;
         curr = curr->children[i];
@@ -44,12 +44,12 @@ std::string Trie::autoComplete(std::string prefix){
     else{
         while(!(curr->isWord))
         {
-            for(int i=0; i < 26; i++)
+            for(int i=0; i < BUFFER_SIZE; i++)
             {
                 if(curr->children[i])
                 {
-                    std::cout << char('a' + i);
-                    completeString += char('a' + i);
+                    std::cout << char(32 + i);
+                    completeString += char(32 + i);
                     curr = curr->children[i];
                 }
             }

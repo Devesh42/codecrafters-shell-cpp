@@ -2,14 +2,15 @@
 #define TRIE_H
 
 #include <string>
+#define BUFFER_SIZE 256
 
 class TrieNode{
     public:
-    TrieNode* children[26];
+    TrieNode* children[BUFFER_SIZE];
     bool isWord;
 
     TrieNode(){
-        for(int i=0; i<26; i++)
+        for(int i=0; i<BUFFER_SIZE; i++)
             children[i] = nullptr;
         isWord = false;
     }
